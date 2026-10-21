@@ -1,0 +1,10 @@
+.venv
+data
+samples
+.claude
+__pycache__
+*.pyc
+bin
+segreti
+deploy
+bin

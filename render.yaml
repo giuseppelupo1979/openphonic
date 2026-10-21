@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: openphonic
+    runtime: docker
+    plan: starter
+    healthCheckPath: /healthz
+    envVars:
+      - key: APP_PASSWORD
+        generateValue: true
+      - key: WORKERS
+        value: "1"
+    disk:
+      name: openphonic-data
+      mountPath: /data
+      sizeGB: 10

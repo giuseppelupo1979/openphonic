@@ -1,0 +1,14 @@
+services:
+  openphonic:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      APP_PASSWORD: ${APP_PASSWORD:?imposta APP_PASSWORD nel file .env}
+      WORKERS: "2"
+      MAX_UPLOAD_MB: "2000"
+    volumes:
+      - openphonic-data:/data
+    restart: unless-stopped
+volumes:
+  openphonic-data:

@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenPhonic</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23e8572a'/><path d='M6 16h3l2-7 4 14 3-10 2 6 2-3h4' stroke='white' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="#/new">
+    <svg viewBox="0 0 32 32" width="28" height="28"><rect width="32" height="32" rx="8" fill="var(--accent)"/><path d="M6 16h3l2-7 4 14 3-10 2 6 2-3h4" stroke="white" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span>OpenPhonic</span>
+  </a>
+  <nav>
+    <a href="#/new" data-nav="new">Nuova produzione</a>
+    <a href="#/productions" data-nav="productions">Produzioni</a>
+    <a href="#/api" data-nav="api">API</a>
+  </nav>
+</header>
+
+<main id="view"></main>
+
+<template id="tpl-new">
+<form id="form" class="new-grid" autocomplete="off">
+  <section class="card inputs">
+    <h2>Input</h2>
+    <div class="seg" id="mode">
+      <button type="button" data-mode="single" class="on">Singola traccia</button>
+      <button type="button" data-mode="multi">Multitraccia</button>
+      <button type="button" data-mode="url">Da URL</button>
+    </div>
+    <label class="drop" id="drop">
+      <input type="file" id="files" accept="audio/*,video/*" hidden>
+      <div class="drop-inner">
+        <svg viewBox="0 0 24 24" width="34" height="34"><path d="M12 16V4m0 0L7 9m5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <strong>Trascina qui il file audio o video</strong>
+        <span class="muted">oppure clicca per sceglierlo · MP3, WAV, M4A, FLAC, OGG, MP4, MOV…</span>
+      </div>
+    </label>
+    <div id="urlbox" hidden>
+      <input type="url" id="url" placeholder="https://esempio.com/episodio.mp3">
+    </div>
+    <ul id="tracklist" class="tracks"></ul>
+    <label id="content-type">Contenuto
+      <select id="content"><option value="speech">Parlato (podcast, video, intervista)</option><option value="music">Musica</option></select>
+    </label>
+
+    <h3>Intro, outro e copertina</h3>
+    <div class="extras">
+      <label class="file-pill"><span>Intro</span><input type="file" id="intro" accept="audio/*"><em>nessuno</em></label>
+      <label class="file-pill"><span>Outro</span><input type="file" id="outro" accept="audio/*"><em>nessuno</em></label>
+      <label class="file-pill"><span>Copertina</span><input type="file" id="cover" accept="image/jpeg,image/png"><em>nessuna</em></label>
+    </div>
+
+    <h3>Metadati</h3>
+    <div class="grid2">
+      <label>Titolo<input name="metadata.title"></label>
+      <label>Artista / autore<input name="metadata.artist"></label>
+      <label>Album / podcast<input name="metadata.album"></label>
+      <label>Anno<input name="metadata.year" inputmode="numeric"></label>
+      <label>Genere<input name="metadata.genre"></label>
+      <label>Traccia / episodio<input name="metadata.track"></label>
+    </div>
+    <label>Descrizione<textarea name="metadata.comment" rows="2"></textarea></label>
+
+    <h3>Capitoli</h3>
+    <div id="chapters" class="rows"></div>
+    <button type="button" class="ghost small" id="add-chapter">+ Aggiungi capitolo</button>
+  </section>
+
+  <section class="card algos">
+    <div class="preset-bar">
+      <label>Preset
+        <select id="preset"></select>
+      </label>
+      <button type="button" class="ghost small" id="save-preset">Salva come preset</button>
+      <button type="button" class="ghost small danger" id="del-preset" hidden>Elimina</button>
+    </div>
+
+    <details open class="algo">
+      <summary><label class="switch"><input type="checkbox" name="leveler.enabled"><i></i></label>Adaptive Leveler</summary>
+      <p class="hint">Bilancia frase per frase i livelli tra parlanti e passaggi, come un tecnico al fader. Nelle pause non alza il rumore.</p>
+      <label>Intensità <output data-for="leveler.strength"></output>
+        <input type="range" name="leveler.strength" min="0" max="100" step="10"></label>
+      <label>Compressore
+        <select name="leveler.compressor">
+          <option value="auto">Auto</option><option value="soft">Leggero</option>
+          <option value="medium">Medio</option><option value="hard">Forte</option><option value="off">Off</option>
+        </select></label>
+    </details>
+
+    <details open class="algo">
+      <summary><label class="switch"><input type="checkbox" name="filtering.enabled"><i></i></label>Filtering</summary>
+      <p class="hint">Rimuove rombi e ronzio elettrico, corregge il timbro della voce (AutoEQ), plosive e sibilanti.</p>
+      <div class="grid2">
+        <label>Passa-alto
+          <select name="filtering.highpass">
+            <option value="auto">Auto (80 Hz)</option><option value="60">60 Hz</option><option value="80">80 Hz</option>
+            <option value="100">100 Hz</option><option value="120">120 Hz</option><option value="off">Off</option>
+          </select></label>
+        <label>Ronzio (hum)
+          <select name="filtering.hum">
+            <option value="auto">Auto-rilevamento</option><option value="50">50 Hz</option>
+            <option value="60">60 Hz</option><option value="off">Off</option>
+          </select></label>
+      </div>
+      <label class="check"><input type="checkbox" name="filtering.autoeq"> Voice AutoEQ (timbro bilanciato, voce più presente)</label>
+      <label class="check"><input type="checkbox" name="filtering.deesser"> De-esser (sibilanti)</label>
+      <label class="check"><input type="checkbox" name="filtering.deplosive"> De-plosive (P e B)</label>
+    </details>
+
+    <details open class="algo">
+      <summary><label class="switch"><input type="checkbox" name="denoise.enabled"><i></i></label>Noise Reduction</summary>
+      <p class="hint">Rete neurale che separa la voce da rumore, ventole, traffico e riverbero.</p>
+      <div class="grid2">
+        <label>Metodo
+          <select name="denoise.method">
+            <option value="ai">AI · DeepFilterNet (consigliato)</option>
+            <option value="rnnoise">RNNoise (leggero)</option>
+            <option value="classic">Classico spettrale</option>
+          </select></label>
+        <label>Quantità
+          <select name="denoise.amount">
+            <option value="auto">Auto (in base al rumore)</option><option value="low">Bassa · lascia ambiente</option>
+            <option value="medium">Media</option><option value="high">Alta</option>
+            <option value="max">Massima · silenzio totale</option>
+          </select></label>
+      </div>
+    </details>
+
+    <details open class="algo">
+      <summary><label class="switch"><input type="checkbox" name="loudness.enabled"><i></i></label>Loudness Normalization</summary>
+      <p class="hint">Normalizzazione EBU R128 / ITU-R BS.1770 con limitatore true-peak.</p>
+      <div class="grid2">
+        <label>Target
+          <select name="loudness.target">
+            <option value="-23">−23 LUFS · EBU R128 broadcast</option>
+            <option value="-19">−19 LUFS · podcast mono</option>
+            <option value="-18">−18 LUFS · Apple Podcasts</option>
+            <option value="-16">−16 LUFS · podcast stereo</option>
+            <option value="-14">−14 LUFS · YouTube / Spotify</option>
+          </select></label>
+        <label>True peak max
+          <select name="loudness.true_peak">
+            <option value="-1">−1 dBTP</option><option value="-1.5">−1.5 dBTP</option>
+            <option value="-2">−2 dBTP</option><option value="-3">−3 dBTP</option>
+          </select></label>
+      </div>
+      <label class="check"><input type="checkbox" name="loudness.dual_mono"> Dual mono (file mono misurati come stereo)</label>
+    </details>
+
+    <details class="algo">
+      <summary><label class="switch"><input type="checkbox" name="cutting.silence"><i></i></label>Taglio silenzi</summary>
+      <p class="hint">Accorcia le pause lunghe lasciandone una parte naturale.</p>
+      <div class="grid2">
+        <label>Pause più lunghe di (s)<input type="number" name="cutting.min_silence" min="0.2" max="10" step="0.1"></label>
+        <label>Pausa da lasciare (s)<input type="number" name="cutting.keep_silence" min="0" max="3" step="0.1"></label>
+      </div>
+      <label class="check"><input type="checkbox" name="cutting.fillers"> Taglia anche le parole riempitive (ehm, uhm…) <span class="tag asr">ASR</span></label>
+    </details>
+
+    <details class="algo">
+      <summary><label class="switch"><input type="checkbox" name="speech.enabled"><i></i></label>Speech Recognition</summary>
+      <p class="hint">Trascrizione con Whisper: TXT, sottotitoli SRT/VTT, JSON con parole e tempi.</p>
+      <div class="grid2">
+        <label>Lingua
+          <select name="speech.language">
+            <option value="auto">Rilevamento automatico</option><option value="it">Italiano</option>
+            <option value="en">Inglese</option><option value="es">Spagnolo</option><option value="fr">Francese</option>
+            <option value="de">Tedesco</option><option value="pt">Portoghese</option>
+          </select></label>
+        <label>Modello
+          <select name="speech.model">
+            <option value="tiny">tiny · velocissimo</option><option value="base">base · veloce</option>
+            <option value="small">small · bilanciato</option><option value="medium">medium · accurato</option>
+            <option value="large-v3">large-v3 · massima qualità</option>
+          </select></label>
+      </div>
+      <p class="warn-inline" id="asr-missing" hidden>Il riconoscimento vocale non è installato su questo server.</p>
+    </details>
+
+    <details class="algo" id="multi-opts" hidden open>
+      <summary>Multitraccia</summary>
+      <label class="check"><input type="checkbox" name="ducking"> Ducking: abbassa la musica quando qualcuno parla</label>
+      <label>Attenuazione ducking (dB)<input type="number" name="ducking_amount_db" min="-30" max="0" step="1"></label>
+    </details>
+
+    <div class="outputs">
+      <h3>File in uscita</h3>
+      <div id="outputs" class="rows"></div>
+      <button type="button" class="ghost small" id="add-output">+ Aggiungi formato</button>
+    </div>
+
+    <div class="submit">
+      <button type="submit" class="primary" id="start">Avvia produzione</button>
+      <div class="upload-progress" id="upbar" hidden><div></div><span></span></div>
+    </div>
+  </section>
+</form>
+</template>
+
+<script src="app.js"></script>
+</body>
+</html>
