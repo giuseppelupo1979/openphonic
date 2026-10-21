@@ -1,12 +1,2 @@
-*.pyc
-.DS_Store
 .claude/
-.env
-.venv/
-__pycache__/
-bin/
-data/
-deploy/
-models/
-samples/
-segreti/
+.DS_Store

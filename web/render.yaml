@@ -2,6 +2,8 @@ services:
   - type: web
     name: openphonic
     runtime: docker
+    dockerContext: ./web
+    dockerfilePath: ./web/Dockerfile
     plan: starter
     healthCheckPath: /healthz
     envVars:
