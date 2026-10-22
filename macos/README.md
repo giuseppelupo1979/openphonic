@@ -80,6 +80,16 @@ Lo stesso eseguibile elabora un file senza aprire la finestra (utile per prove e
 /Applications/OpenPhonic.app/Contents/MacOS/OpenPhonic --process episodio.wav --out ~/Desktop/risultato --cut --transcribe --video
 ```
 
+### Prova di tutte le opzioni
+
+`tools/test-matrix.sh` elabora un file con ogni preset, ogni metodo e quantità di riduzione rumore,
+ogni compressore e una corsa con tutto acceso (tutti i formati, intro, outro, copertina, tagli,
+trascrizione). Stampa una riga per corsa e fallisce se una combinazione dà errore:
+
+```bash
+./tools/test-matrix.sh ~/Music/prova.mp3
+```
+
 ---
 
 ## Struttura
@@ -101,6 +111,7 @@ Sources/OpenPhonic/
     Model.swift         produzioni, coda, salvataggio in ~/Library/Application Support/OpenPhonic
 tools/
   build-app.sh          crea e firma OpenPhonic.app
+  test-matrix.sh        prova tutte le combinazioni di opzioni
   make-icon.swift       disegna l'icona
 ```
 

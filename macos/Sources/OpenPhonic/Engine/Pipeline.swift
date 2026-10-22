@@ -242,7 +242,10 @@ final class Pipeline {
                 notes.append("Ronzio elettrico a \(f0) Hz rilevato e rimosso")
             }
             if s.deplosive {
-                pre.append("adynamicequalizer=threshold=-30:dfrequency=110:dqfactor=0.8:tfrequency=110:tqfactor=0.8:attack=1:release=80:ratio=4:range=18:mode=cutabove:tftype=lowshelf")
+                // threshold is a linear amplitude: trigger on low-frequency bursts that come
+                // within 4 dB of the voice's typical peak level
+                let thr = min(1, max(0.001, pow(10, (np.signalLevel - 4) / 20)))
+                pre.append(String(format: "adynamicequalizer=threshold=%.4f:dfrequency=110:dqfactor=0.8:tfrequency=110:tqfactor=0.8:attack=1:release=80:ratio=4:range=18:mode=cutabove:tftype=lowshelf", thr))
             }
         }
         pre.append(channels == 2 ? "pan=mono|c0=0.5*c0+0.5*c1" : "anull")
@@ -258,7 +261,7 @@ final class Pipeline {
 
         // 2. noise reduction
         if s.denoiseOn {
-            let nr: Double = {
+            var nr: Double = {
                 switch s.denoiseAmount {
                 case .auto: return np.noiseFloor < -75 ? 0 : min(45, max(12, 54 - np.snr))
                 case .low: return 10
@@ -286,7 +289,15 @@ final class Pipeline {
                     try Tools.ffmpeg(["-i", cur.path, "-af", String(format: "arnndn=m=%@:mix=%.2f", Tools.rnnoiseModel!, min(1, 0.4 + nr / 40)),
                                       "-c:a", "pcm_f32le", out.path])
                 case .classic:
-                    try Tools.ffmpeg(["-i", cur.path, "-af", String(format: "afftdn=nr=%.0f:nf=%.0f:tn=1", min(nr, 12), max(-80, min(-20, np.noiseFloor))),
+                    // spectral subtraction gets "underwater" past ~25 dB: its own, gentler scale
+                    let classicNR: Double = ["low": 6, "medium": 12, "high": 18, "max": 25][s.denoiseAmount.rawValue] ?? min(18, nr * 0.5)
+                    nr = classicNR
+                    // learn the noise print from the quietest half second, like a manual noise profile
+                    let xs = try FF.readMono(cur)
+                    let rms = Analysis.frameRMS(xs, frame: 8000, hop: 1600)
+                    let q = Double(rms.indices.min { rms[$0] < rms[$1] } ?? 0) * 0.1
+                    let sample = String(format: "asendcmd=c='%.2f afftdn sn start; %.2f afftdn sn stop',", q, q + 0.5)
+                    try Tools.ffmpeg(["-i", cur.path, "-af", sample + String(format: "afftdn=nr=%.0f:nf=%.0f:tn=1", classicNR, max(-80, min(-20, np.noiseFloor))),
                                       "-c:a", "pcm_f32le", out.path])
                 }
                 cur = out
@@ -305,7 +316,11 @@ final class Pipeline {
         // 3. AutoEQ + de-esser
         var tone: [String] = []
         if s.filterOn && s.autoEQ {
-            let eq = Leveler.autoEQ(x16, vad: vad)
+            var eq = Leveler.autoEQ(x16, vad: vad)
+            if Analysis.noiseProfile(x16).snr < 25 {
+                // still noisy: lifting the highs would lift the hiss with them
+                eq = eq.filter { !($0.0 >= 2000 && $0.1 > 0) }
+            }
             tone += eq.map { String(format: "equalizer=f=%d:t=o:w=1:g=%.1f", $0.0, $0.1) }
             if !eq.isEmpty {
                 notes.append("Voice AutoEQ: " + eq.map { String(format: "%@ Hz %+.1f dB", $0.0 < 1000 ? "\($0.0)" : "\($0.0 / 1000)k", $0.1) }.joined(separator: ", "))

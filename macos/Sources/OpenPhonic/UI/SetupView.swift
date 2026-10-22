@@ -108,7 +108,7 @@ private struct SetupContent: View {
         AlgoCard(symbol: "sparkles", title: "Riduzione rumore", subtitle: "Rete neurale che separa la voce da rumore, ventole e riverbero",
                  isOn: s.denoiseOn) {
             Row("Metodo") {
-                ChipPicker(options: [(.ai, "AI"), (.rnnoise, "RNNoise"), (.classic, "Classico")], selection: s.denoiseMethod)
+                ChipPicker(options: [(.ai, "AI"), (.rnnoise, "RNNoise"), (.classic, "Classico (leggero)")], selection: s.denoiseMethod)
             }
             Row("Quantità") {
                 ChipPicker(options: [(.auto, "Auto"), (.low, "Bassa"), (.medium, "Media"), (.high, "Alta"), (.max, "Max")],

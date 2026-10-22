@@ -118,6 +118,9 @@ Poi apri http://localhost:8765.
 adatto al tuo sistema in `bin/` e il modello RNNoise in `models/`. Senza riconoscimento vocale
 (installazione più leggera): `WITH_ASR=0 ./scripts/setup.sh`.
 
+Per provare ogni preset e ogni combinazione di opzioni su un file:
+`.venv/bin/python scripts/test_matrix.py prova.mp3`.
+
 Al primo uso della trascrizione Whisper scarica il modello scelto (base ≈ 150 MB, small ≈ 500 MB,
 large-v3 ≈ 3 GB).
 

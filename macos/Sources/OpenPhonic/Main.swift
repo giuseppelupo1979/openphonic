@@ -1,7 +1,11 @@
 import Foundation
 
-/// Entry point: `OpenPhonic --process <file> [--out <dir>] [--transcribe]` runs the engine headless
-/// (used for testing); otherwise the SwiftUI app starts.
+/// Entry point. `OpenPhonic --process <file>` runs the engine headless (used for testing), with:
+///   --out <dir>  --preset <id>  --cut  --transcribe  --video
+///   --denoise ai|rnnoise|classic  --amount auto|low|medium|high|max
+///   --compressor auto|soft|medium|hard|off  --intro <f>  --outro <f>  --cover <f>
+///   --all  (every option on and every output format)
+/// Otherwise the SwiftUI app starts.
 @main
 enum Main {
     static func main() {
@@ -13,11 +17,27 @@ enum Main {
         let src = URL(fileURLWithPath: args[i + 1])
         let out = args.firstIndex(of: "--out").map { URL(fileURLWithPath: args[$0 + 1]) }
             ?? src.deletingLastPathComponent().appendingPathComponent("OpenPhonic")
-        var s = ProductionSettings()
-        s.transcribe = args.contains("--transcribe")
-        s.cutSilence = args.contains("--cut")
-        s.outputs = [.init(format: .wav), .init(format: .mp3)] + (args.contains("--video") ? [.init(format: .video)] : [])
-        let input = ProductionInput(source: src, outputDir: out,
+        func value(_ flag: String) -> String? {
+            args.firstIndex(of: flag).flatMap { $0 + 1 < args.count ? args[$0 + 1] : nil }
+        }
+        var s = value("--preset").flatMap { id in Preset.all.first { $0.id == id } }?.settings() ?? ProductionSettings()
+        if value("--preset") == nil {
+            s.outputs = [.init(format: .wav), .init(format: .mp3)]
+        }
+        if args.contains("--transcribe") { s.transcribe = true }
+        if args.contains("--cut") { s.cutSilence = true }
+        if args.contains("--video") { s.outputs.append(.init(format: .video)) }
+        if let m = value("--denoise").flatMap(ProductionSettings.DenoiseMethod.init(rawValue:)) { s.denoiseMethod = m }
+        if let a = value("--amount").flatMap(ProductionSettings.Amount.init(rawValue:)) { s.denoiseAmount = a }
+        if let c = value("--compressor").flatMap(ProductionSettings.Compressor.init(rawValue:)) { s.compressor = c }
+        if args.contains("--all") {
+            s.deesser = true; s.deplosive = true; s.cutSilence = true; s.cutFillers = true; s.transcribe = true
+            s.title = "Prova completa"; s.artist = "OpenPhonic"; s.album = "Test"
+            s.outputs = ProductionSettings.Output.Format.allCases.map { .init(format: $0) }
+        }
+        let input = ProductionInput(source: src, intro: value("--intro").map(URL.init(fileURLWithPath:)),
+                                    outro: value("--outro").map(URL.init(fileURLWithPath:)),
+                                    cover: value("--cover").map(URL.init(fileURLWithPath:)), outputDir: out,
                                     workDir: FileManager.default.temporaryDirectory.appendingPathComponent("op-cli-\(UUID().uuidString)"))
         let done = DispatchSemaphore(value: 0)
         Task.detached {

@@ -98,7 +98,10 @@ def speech_prefilter(s: Settings, an: dict, notes: list[str]) -> list[str]:
         for k in range(1, 5):
             f.append(f"equalizer=f={hum * k}:t=q:w=30:g=-{24 if k < 3 else 15}")
     if flt.deplosive:
-        f.append("adynamicequalizer=threshold=-30:dfrequency=110:dqfactor=0.8:tfrequency=110:"
+        # threshold is a linear amplitude: trigger on low-frequency bursts that come
+        # within 4 dB of the voice's typical peak level
+        thr = min(1.0, max(0.001, 10 ** ((an["signal_level_db"] - 4) / 20)))
+        f.append(f"adynamicequalizer=threshold={thr:.4f}:dfrequency=110:dqfactor=0.8:tfrequency=110:"
                  "tqfactor=0.8:attack=1:release=80:ratio=4:range=18:mode=cutabove:tftype=lowshelf")
     return f
 
@@ -148,7 +151,13 @@ def process_speech(ctx: "Context", src: Path, an: dict, dst: Path, channels: int
                 label = "RNNoise"
             else:
                 nf = max(-80, min(-20, an["noise_floor_db"]))
-                ff.run(["-i", str(cur), "-af", f"afftdn=nr={min(nr, 12):.0f}:nf={nf:.0f}:tn=1",
+                # spectral subtraction gets "underwater" past ~25 dB: its own, gentler scale
+                nr = {"low": 6, "medium": 12, "high": 18, "max": 25}.get(dn.amount, min(18, nr * 0.5))
+                # learn the noise print from the quietest half second, like a manual noise profile
+                rms = analysis.frame_rms(ff.read_mono(cur), 8000, 1600)
+                q = float(np.argmin(rms)) * 0.1
+                sample = f"asendcmd=c='{q:.2f} afftdn sn start; {q + 0.5:.2f} afftdn sn stop',"
+                ff.run(["-i", str(cur), "-af", sample + f"afftdn=nr={nr:.0f}:nf={nf:.0f}:tn=1",
                         "-c:a", "pcm_f32le", str(out)])
                 label = "spettrale"
             cur = out
@@ -165,6 +174,9 @@ def process_speech(ctx: "Context", src: Path, an: dict, dst: Path, channels: int
     tone: list[str] = []
     if s.filtering.enabled and s.filtering.autoeq:
         eq = leveler.auto_eq(x16, vad)
+        if analysis.noise_profile(x16)["snr_db"] < 25:
+            # still noisy: lifting the highs would lift the hiss with them
+            eq = [(c, g) for c, g in eq if not (c >= 2000 and g > 0)]
         tone += [f"equalizer=f={c}:t=o:w=1:g={g}" for c, g in eq]
         if eq:
             notes.append("Voice AutoEQ: " + ", ".join(
