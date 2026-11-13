@@ -35,10 +35,25 @@ async function api(path, opts = {}) {
   return r.json();
 }
 
+/* ------------------------------------------------------------------ version / update notice */
+function showVersion() {
+  $("#ver").textContent = caps.version && caps.version !== "dev" ? "v" + caps.version : "";
+  const u = caps.update;
+  if (!u) return;
+  const box = $("#update");
+  const notes = (u.notes || "").split("\n").filter((l) => l.trim().startsWith("-")).slice(0, 3)
+    .map((l) => `<li>${h(l.replace(/^\s*-\s*/, ""))}</li>`).join("");
+  box.innerHTML = `<div><strong>Nuova versione ${h(u.version)} disponibile</strong> (questa è la ${h(caps.version)})
+      ${notes ? `<ul>${notes}</ul>` : ""}
+      <span class="muted">Per aggiornare il server: <code>git pull</code> e riavvio, oppure <code>docker compose up -d --build</code>.</span></div>
+    <a href="${h(u.url)}" target="_blank" rel="noopener"><button class="primary small">Novità su GitHub</button></a>`;
+  box.hidden = false;
+}
+
 /* ------------------------------------------------------------------ router */
 async function route() {
   clearInterval(pollTimer);
-  if (!caps) caps = await api("api/capabilities");
+  if (!caps) { caps = await api("api/capabilities"); showVersion(); }
   const [, page, id] = location.hash.split("/");
   $$("nav a").forEach((a) => a.classList.toggle("on", a.dataset.nav === (page || "new")));
   if (page === "productions") return renderList();

@@ -3,7 +3,10 @@
 FROM python:3.12-slim-trixie
 
 ARG WITH_ASR=1
+# shown in the UI and used to spot new releases: docker build --build-arg OPENPHONIC_VERSION=$(cat ../VERSION)
+ARG OPENPHONIC_VERSION=dev
 ENV PYTHONUNBUFFERED=1 \
+    OPENPHONIC_VERSION=$OPENPHONIC_VERSION \
     DATA_DIR=/data \
     HF_HOME=/data/hf-cache \
     PORT=8000

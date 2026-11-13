@@ -124,6 +124,14 @@ I file elaborati vanno in `~/Music/OpenPhonic/<nome>/` (la cartella si cambia da
 - La build avviene in una cartella temporanea (`--scratch-path`) per evitare problemi del database di
   build di SwiftPM su cartelle sincronizzate.
 
+## Aggiornamenti automatici
+
+All'avvio l'app controlla l'ultima Release su GitHub. Se è più recente compare "Nuova versione" nella barra
+laterale con le novità; **Aggiorna e riavvia** scarica il pacchetto, verifica l'impronta SHA-256 e la firma del codice,
+sostituisce `OpenPhonic.app` e la riapre. Se l'impronta non corrisponde, l'aggiornamento si ferma senza toccare
+nulla. "Controlla aggiornamenti" nella barra laterale fa il controllo a mano. La variabile
+`OPENPHONIC_UPDATE_URL` permette di provarlo con una Release finta.
+
 ## Limiti noti
 
 - Niente multitraccia né capitoli, che invece ci sono nella versione web.

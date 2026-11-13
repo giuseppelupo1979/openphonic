@@ -390,4 +390,5 @@
     <BooleanToVisibilityConverter x:Key="BoolToVis" />
     <ui:EqualsConverter x:Key="Eq" />
     <ui:NotNullToVisConverter x:Key="Shown" />
+    <ui:NotConverter x:Key="Not" />
 </ResourceDictionary>

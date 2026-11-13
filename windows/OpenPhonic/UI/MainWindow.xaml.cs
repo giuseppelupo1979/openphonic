@@ -31,6 +31,15 @@ public partial class MainWindow : Window
             if (e.Data.GetData(DataFormats.FileDrop) is string[] files) Model.Add(files.Where(File.Exists));
         };
         Closing += (_, _) => { Model.Cancel(); Model.Save(); };
+        // look for a new version a few seconds after start, without slowing the launch down
+        Loaded += async (_, _) => { await Task.Delay(3000); await Model.CheckForUpdate(); };
+    }
+
+    async void OnUpdate(object s, RoutedEventArgs e) => await Model.ApplyUpdate();
+    async void OnCheckUpdate(object s, RoutedEventArgs e)
+    {
+        Model.UpdateStatus = "Controllo in corso…";
+        await Model.CheckForUpdate(userAsked: true);
     }
 
     void UpdateEmpty() => EmptyHint.Visibility = Model.Productions.Count == 0 ? Visibility.Visible : Visibility.Collapsed;

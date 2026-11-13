@@ -35,6 +35,43 @@ final class AppModel {
     }
     let ffmpegAvailable = Tools.ffmpeg != nil && Tools.ffprobe != nil
     let deepFilterAvailable = Tools.deepFilter != nil
+
+    // ---- self-update
+    var update: Updater.Release?
+    var updateStatus = ""
+    var updateBusy = false
+
+    /// Asks GitHub for a newer release; silent on network problems unless the user asked.
+    func checkForUpdate(userAsked: Bool = false) async {
+        do {
+            update = try await Updater.check()
+            if update != nil { updateStatus = "" }
+            else if userAsked { updateStatus = "OpenPhonic \(Updater.current) è aggiornato" }
+        } catch {
+            if userAsked { updateStatus = "Impossibile controllare gli aggiornamenti: \(error.localizedDescription)" }
+        }
+    }
+
+    func applyUpdate() async {
+        guard let r = update, !updateBusy else { return }
+        if productions.contains(where: { $0.status == .processing || $0.status == .queued }) {
+            updateStatus = "Attendi la fine delle elaborazioni in corso"
+            return
+        }
+        updateBusy = true
+        updateStatus = "Download…"
+        do {
+            try await Updater.prepare(r) { f in
+                Task { @MainActor in self.updateStatus = "Download \(Int(f * 100))%" }
+            }
+            updateStatus = "Installazione…"
+            save()
+            NSApp.terminate(nil)
+        } catch {
+            updateStatus = error.localizedDescription
+            updateBusy = false
+        }
+    }
     private var running = false
 
     static let support: URL = {

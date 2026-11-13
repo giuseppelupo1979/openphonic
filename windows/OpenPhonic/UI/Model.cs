@@ -72,6 +72,52 @@ public sealed class AppModel : Observable
     public string OutputFolderName => Path.GetFileName(OutputFolder.TrimEnd('\\'));
 
     public bool FfmpegAvailable { get; } = Tools.Ffmpeg != null && Tools.Ffprobe != null;
+
+    // ---- self-update
+    public string CurrentVersion => Updater.Current.ToString(3);
+    public Updater.Release? Update { get; set { if (Set(ref field, value)) Raise(nameof(HasUpdate)); } }
+    public bool HasUpdate => Update != null;
+    public string UpdateStatus { get; set => Set(ref field, value); } = "";
+    public bool UpdateBusy { get; set => Set(ref field, value); }
+
+    /// <summary>Asks GitHub for a newer release; silent on any network problem.</summary>
+    public async Task CheckForUpdate(bool userAsked = false)
+    {
+        try
+        {
+            Update = await Updater.Check();
+            if (Update != null) UpdateStatus = "";
+            else if (userAsked) UpdateStatus = $"OpenPhonic {CurrentVersion} è aggiornato";
+        }
+        catch (Exception e)
+        {
+            if (userAsked) UpdateStatus = "Impossibile controllare gli aggiornamenti: " + e.Message;
+        }
+    }
+
+    public async Task ApplyUpdate()
+    {
+        if (Update is not { } r || UpdateBusy) return;
+        if (Productions.Any(p => p.Status is Status.Processing or Status.Queued))
+        {
+            UpdateStatus = "Attendi la fine delle elaborazioni in corso";
+            return;
+        }
+        UpdateBusy = true;
+        try
+        {
+            var ui = Application.Current.Dispatcher;
+            await Updater.Prepare(r, f => ui.BeginInvoke(() => UpdateStatus = $"Download {f * 100:0}%"));
+            UpdateStatus = "Installazione…";
+            Save();
+            Application.Current.Shutdown();
+        }
+        catch (Exception e)
+        {
+            UpdateStatus = e.Message;
+            UpdateBusy = false;
+        }
+    }
     public bool DeepFilterAvailable { get; } = Tools.DeepFilter != null;
 
     /// <summary>

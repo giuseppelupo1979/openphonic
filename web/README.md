@@ -289,6 +289,13 @@ L'unica connessione in uscita è il download dei modelli al primo avvio.
 
 ---
 
+## Aggiornamenti
+
+La pagina mostra la versione in alto a destra. Ogni 6 ore il server controlla le Release su GitHub e, se
+ce n'è una più recente, la pagina mostra un avviso con le novità. Per aggiornare: `git pull` e riavvio
+del server, oppure `docker compose up -d --build` (passando `--build-arg OPENPHONIC_VERSION=$(cat ../VERSION)`
+per vedere il numero di versione nel container).
+
 ## Limiti noti
 
 - La catena è stata tarata su pochi file: una registrazione reale da iPhone e alcuni file sintetici. Su microfoni e stanze molto diversi può servire regolare intensità del leveler e quantità di riduzione rumore.

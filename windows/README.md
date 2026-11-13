@@ -118,6 +118,14 @@ tools/
   sync-vm.sh           copia e compila nella VM Parallels dal Mac
 ```
 
+## Aggiornamenti automatici
+
+All'avvio l'app controlla l'ultima Release su GitHub. Se è più recente compare "Nuova versione" nella barra
+laterale con le novità; **Aggiorna e riavvia** scarica il pacchetto, verifica l'impronta SHA-256, lancia
+l'installatore del pacchetto e riapre l'app. Se l'impronta non corrisponde, l'aggiornamento si ferma senza toccare
+nulla. "Controlla aggiornamenti" nella barra laterale fa il controllo a mano. La variabile
+`OPENPHONIC_UPDATE_URL` permette di provarlo con una Release finta.
+
 ## Limiti noti
 
 - Niente multitraccia né capitoli, come nella versione Mac.

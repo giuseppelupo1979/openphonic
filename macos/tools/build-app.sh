@@ -5,7 +5,7 @@ cd "$(dirname "$0")/.."
 ROOT="$(pwd)"
 WEB="$ROOT/../web"
 APP="$ROOT/dist/OpenPhonic.app"
-VERSION="1.0"
+VERSION="$(head -1 "$ROOT/../VERSION" 2>/dev/null || echo 1.0.0)"
 
 # build outside the project folder (avoids SwiftPM build-database locking issues on synced folders)
 SCRATCH="${BUILD_DIR:-${TMPDIR:-/tmp}/openphonic-build}"
@@ -73,4 +73,7 @@ SIGN="${IDENTITY:--}"
 codesign --force --options runtime --timestamp=none -s "$SIGN" "$APP/Contents/Resources/deep-filter"
 codesign --force --options runtime --timestamp=none -s "$SIGN" "$APP"
 codesign --verify --deep --strict "$APP"
-echo "OK: $APP (firma: ${IDENTITY:-ad-hoc})"
+# release package for the self-updater
+rm -f dist/OpenPhonic-macos.zip
+ditto -c -k --keepParent "$APP" dist/OpenPhonic-macos.zip
+echo "OK: $APP $VERSION (firma: ${IDENTITY:-ad-hoc})"

@@ -36,8 +36,13 @@ Fetch "https://github.com/Rikorose/DeepFilterNet/releases/download/v0.5.6/deep-f
 Fetch "https://raw.githubusercontent.com/GregorR/rnnoise-models/master/somnolent-hogwash-2018-09-01/sh.rnnn" "$third\std.rnnn"
 
 $out = Join-Path $root "dist\$Rid"
+# one version number for every edition: the repository's VERSION file
+$versionFile = @((Join-Path (Split-Path $root -Parent) 'VERSION'), (Join-Path $root 'VERSION')) | Where-Object { Test-Path $_ } | Select-Object -First 1
+$version = if ($versionFile) { (Get-Content $versionFile -TotalCount 1).Trim() } else { '1.0.0' }
+Write-Host "Versione $version"
+Get-Process OpenPhonic -ErrorAction SilentlyContinue | Where-Object { $_.Path -like "$root*" } | Stop-Process -Force
 dotnet publish "$root\OpenPhonic\OpenPhonic.csproj" -c Release -r $Rid --self-contained true `
-    -p:PublishReadyToRun=true -o $out
+    -p:PublishReadyToRun=true -p:Version=$version -o $out
 if ($LASTEXITCODE -ne 0) { throw "dotnet publish non riuscito" }
 
 if ($Zip) {

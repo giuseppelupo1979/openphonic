@@ -166,6 +166,37 @@ struct EngineStatus: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            if let r = model.update {
+                VStack(alignment: .leading, spacing: 8) {
+                    Label("Nuova versione \(r.version)", systemImage: "arrow.down.circle.fill")
+                        .font(.rounded(13, .bold))
+                        .foregroundStyle(.white)
+                    if !r.notes.isEmpty {
+                        Text(r.notes).font(.rounded(11)).foregroundStyle(Theme.text2).lineLimit(4)
+                    }
+                    Button { Task { await model.applyUpdate() } } label: {
+                        Text("Aggiorna e riavvia").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(GlowButtonStyle(big: false))
+                    .disabled(model.updateBusy)
+                }
+                .padding(14)
+                .background(Theme.rose.opacity(0.12), in: RoundedRectangle(cornerRadius: 16))
+                .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Theme.accent, lineWidth: 1))
+                .transition(.scale(scale: 0.9).combined(with: .opacity))
+            }
+            if !model.updateStatus.isEmpty {
+                Text(model.updateStatus).font(.rounded(11)).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
+            }
+            HStack {
+                Text("Versione \(Updater.current)").font(.rounded(11)).foregroundStyle(Theme.text3)
+                Spacer()
+                Button("Controlla aggiornamenti") {
+                    model.updateStatus = "Controllo in corso…"
+                    Task { await model.checkForUpdate(userAsked: true) }
+                }
+                .buttonStyle(.plain).font(.rounded(11, .semibold)).foregroundStyle(Theme.ember)
+            }
             dot(model.ffmpegAvailable, "ffmpeg", model.ffmpegAvailable ? "pronto" : "manca: brew install ffmpeg")
             dot(model.deepFilterAvailable, "Riduzione rumore AI", model.deepFilterAvailable ? "DeepFilterNet" : "non trovata")
             Button {

@@ -303,3 +303,9 @@ public sealed class AlgoCard : ContentControl
     public bool IsOn { get => (bool)GetValue(IsOnProperty); set => SetValue(IsOnProperty, value); }
     public bool HasSwitch { get => (bool)GetValue(HasSwitchProperty); set => SetValue(HasSwitchProperty, value); }
 }
+
+public sealed class NotConverter : IValueConverter
+{
+    public object Convert(object? value, Type t, object? p, CultureInfo c) => value is not true;
+    public object ConvertBack(object? value, Type t, object? p, CultureInfo c) => value is not true;
+}

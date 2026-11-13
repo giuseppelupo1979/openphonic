@@ -10,6 +10,11 @@ struct OpenPhonicApp: App {
                 .environment(model)
                 .frame(minWidth: 1080, minHeight: 720)
                 .preferredColorScheme(.dark)
+                .task {
+                    // look for a new version a few seconds after launch
+                    try? await Task.sleep(for: .seconds(3))
+                    await model.checkForUpdate()
+                }
         }
         .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 1320, height: 860)
@@ -19,6 +24,12 @@ struct OpenPhonicApp: App {
                     .keyboardShortcut("n")
                 Button("Apri file…") { openFiles(model) }
                     .keyboardShortcut("o")
+            }
+            CommandGroup(after: .appInfo) {
+                Button("Controlla aggiornamenti…") {
+                    model.updateStatus = "Controllo in corso…"
+                    Task { await model.checkForUpdate(userAsked: true) }
+                }
             }
         }
     }

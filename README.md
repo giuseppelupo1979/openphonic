@@ -46,6 +46,21 @@ Web app:
 cd web && ./scripts/setup.sh && .venv/bin/uvicorn app.main:app --port 8765
 ```
 
+## Aggiornamenti
+
+Le app per Mac e Windows controllano all'avvio se su
+[GitHub Releases](https://github.com/giuseppelupo1979/openphonic/releases) c'è una versione nuova. Se c'è,
+compare un avviso nella barra laterale: **Aggiorna e riavvia** scarica il pacchetto giusto, ne verifica
+l'impronta SHA-256 (e su Mac anche la firma), sostituisce l'app e la riapre. Cronologia e impostazioni
+restano. La web app mostra un avviso con le novità e il comando per aggiornare il server.
+
+### Pubblicare una versione
+
+1. Alza il numero in `VERSION` e aggiungi la sezione corrispondente in `CHANGELOG.md`.
+2. Committa, poi `tools/release.sh --dry-run` per preparare e controllare i pacchetti in `dist/release/`.
+3. `tools/release.sh` crea il tag, compila Mac e Windows (x64 e ARM64, nella VM), calcola gli SHA-256 e
+   pubblica la Release con le note del CHANGELOG.
+
 Codice sotto licenza [MIT](LICENSE); i componenti di terze parti hanno le loro licenze (vedi i README delle singole versioni).
 
 OpenPhonic non è affiliato ad Auphonic.

@@ -13,14 +13,14 @@ from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 
-from . import jobs, transcribe
+from . import jobs, transcribe, version
 from .settings import Settings
 
 PASSWORD = os.environ.get("APP_PASSWORD", "")
 STATIC = Path(__file__).resolve().parent / "static"
 
 # ROOT_PATH: public prefix when served under a sub-path by a proxy that strips it (e.g. /openphonic)
-app = FastAPI(title="OpenPhonic", version="1.0", root_path=os.environ.get("ROOT_PATH", ""))
+app = FastAPI(title="OpenPhonic", version=version.VERSION, root_path=os.environ.get("ROOT_PATH", ""))
 
 
 @app.middleware("http")
@@ -44,6 +44,7 @@ async def auth(request: Request, call_next):
 
 @app.on_event("startup")
 def _startup() -> None:
+    version.latest_release()   # start the first update check in the background
     jobs.purge_old()
     jobs.resume_pending()
 
@@ -55,7 +56,9 @@ def health():
 
 @app.get("/api/capabilities")
 def capabilities():
-    return {"speech_recognition": transcribe.available(),
+    return {"version": version.VERSION,
+            "update": version.latest_release(),
+            "speech_recognition": transcribe.available(),
             "max_upload_mb": jobs.MAX_BYTES // (1024 * 1024),
             "defaults": Settings().model_dump()}
 
