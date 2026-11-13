@@ -46,4 +46,6 @@ Web app:
 cd web && ./scripts/setup.sh && .venv/bin/uvicorn app.main:app --port 8765
 ```
 
+Codice sotto licenza [MIT](LICENSE); i componenti di terze parti hanno le loro licenze (vedi i README delle singole versioni).
+
 OpenPhonic non è affiliato ad Auphonic.
