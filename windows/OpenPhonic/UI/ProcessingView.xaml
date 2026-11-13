@@ -1,0 +1,27 @@
+<UserControl x:Class="OpenPhonic.UI.ProcessingView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="clr-namespace:OpenPhonic.UI">
+    <Grid>
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Grid Width="320" Height="320" HorizontalAlignment="Center">
+                <ui:ProgressHalo Value="{Binding P.Progress}" />
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <TextBlock x:Name="Pct" FontSize="78" FontWeight="Black" />
+                        <TextBlock Text="%" FontSize="30" FontWeight="Bold" Foreground="{StaticResource Text2}" VerticalAlignment="Bottom" Margin="2,0,0,16" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding P.Step}" FontSize="14" Foreground="{StaticResource Text2}" HorizontalAlignment="Center"
+                               MaxWidth="220" TextTrimming="CharacterEllipsis" />
+                    <ui:LiveBars Height="26" Width="160" Count="15" Intense="True" Opacity="0.4" Margin="0,14,0,0" />
+                </StackPanel>
+            </Grid>
+            <TextBlock Text="{Binding P.Name}" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,24,0,4" />
+            <TextBlock x:Name="Sub" FontSize="13" Foreground="{StaticResource Text3}" HorizontalAlignment="Center" />
+            <Border Style="{StaticResource Glass}" CornerRadius="26" Padding="18" Margin="0,30,0,0" HorizontalAlignment="Center">
+                <StackPanel x:Name="Stages" Orientation="Horizontal" />
+            </Border>
+            <Button Style="{StaticResource GhostButton}" Content="Annulla" HorizontalAlignment="Center" Margin="0,22,0,0" Click="OnCancel" />
+        </StackPanel>
+    </Grid>
+</UserControl>

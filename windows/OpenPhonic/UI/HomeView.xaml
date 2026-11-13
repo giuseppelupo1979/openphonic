@@ -1,0 +1,75 @@
+<UserControl x:Class="OpenPhonic.UI.HomeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="clr-namespace:OpenPhonic.UI">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel MaxWidth="980" Margin="48,56,48,40" x:Name="Body" Opacity="0">
+            <StackPanel.RenderTransform><TranslateTransform x:Name="Lift" Y="16" /></StackPanel.RenderTransform>
+
+            <TextBlock Text="Il tuo audio,&#x0a;suono da studio." FontSize="56" FontWeight="Black" TextAlignment="Center"
+                       Foreground="{StaticResource HeroText}" LineHeight="62">
+                <TextBlock.Effect>
+                    <DropShadowEffect Color="{StaticResource RoseColor}" BlurRadius="40" ShadowDepth="0" Opacity="0.3" />
+                </TextBlock.Effect>
+            </TextBlock>
+            <TextBlock Text="Rumore, livelli, timbro e loudness sistemati da soli. Tutto sul tuo PC." FontSize="16"
+                       Foreground="{StaticResource Text2}" HorizontalAlignment="Center" Margin="0,14,0,34" />
+
+            <!-- drop zone -->
+            <Grid Height="300" Margin="0,0,0,34">
+                <Border CornerRadius="32" Background="#0AFFFFFF" />
+                <Canvas x:Name="Rings" ClipToBounds="True" IsHitTestVisible="False" Opacity="0.35" />
+                <Rectangle RadiusX="32" RadiusY="32" StrokeThickness="1.5" StrokeDashArray="5 4" Stroke="#30FFFFFF" />
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <ui:LiveBars Height="72" Width="200" />
+                    <TextBlock Text="Trascina qui audio o video" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,18,0,8" />
+                    <TextBlock Text="MP3 · WAV · M4A · FLAC · MP4 · MOV · anche più file insieme" FontSize="13"
+                               Foreground="{StaticResource Text2}" HorizontalAlignment="Center" />
+                    <Button Style="{StaticResource GlowButtonSmall}" Content="Scegli file…" Click="OnChoose"
+                            HorizontalAlignment="Center" Margin="0,20,0,0" />
+                </StackPanel>
+            </Grid>
+
+            <TextBlock Text="PRESET" Style="{StaticResource Caption}" Margin="0,0,0,14" />
+            <ItemsControl x:Name="PresetList">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><UniformGrid Columns="3" /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <RadioButton GroupName="Preset" Margin="0,0,14,14" Cursor="Hand" Checked="OnPreset" Tag="{Binding Id}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                            <RadioButton.Template>
+                                <ControlTemplate TargetType="RadioButton">
+                                    <Border x:Name="B" CornerRadius="20" Padding="16" Background="#09FFFFFF"
+                                            BorderBrush="#14FFFFFF" BorderThickness="1">
+                                        <DockPanel>
+                                            <Border x:Name="Badge" Width="44" Height="44" CornerRadius="13" Background="#14FFFFFF" Margin="0,0,14,0">
+                                                <TextBlock Style="{StaticResource Icon}" Text="{Binding Glyph}" FontSize="19" />
+                                            </Border>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" FontSize="15" FontWeight="Bold" />
+                                                <TextBlock Text="{Binding Subtitle}" FontSize="12" Foreground="{StaticResource Text2}"
+                                                           TextWrapping="Wrap" />
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="B" Property="Background" Value="#12FFFFFF" />
+                                        </Trigger>
+                                        <Trigger Property="IsChecked" Value="True">
+                                            <Setter TargetName="B" Property="BorderBrush" Value="{StaticResource Accent}" />
+                                            <Setter TargetName="B" Property="Background" Value="#1AFFFFFF" />
+                                            <Setter TargetName="Badge" Property="Background" Value="{StaticResource AccentDiagonal}" />
+                                            <Setter TargetName="B" Property="Effect" Value="{StaticResource RoseGlowSoft}" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </RadioButton.Template>
+                        </RadioButton>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

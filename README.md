@@ -6,11 +6,12 @@ Post-produzione audio automatica in stile [Auphonic](https://auphonic.com): ridu
 intelligenza artificiale, leveler adattivo, Voice AutoEQ, loudness EBU R128 esatta, taglio di pause e
 parole riempitive, trascrizione e sottotitoli. Tutto in locale, nessun file lascia il tuo computer.
 
-Il progetto ha due versioni con lo stesso motore audio:
+Il progetto ha tre versioni con lo stesso motore audio:
 
 | | Cartella | Per chi | Tecnologia |
 |---|---|---|---|
 | **App per Mac** | [`macos/`](macos/README.md) | Uso personale sul Mac, interfaccia nativa | Swift, SwiftUI, Accelerate, Speech di Apple |
+| **App per Windows 11** | [`windows/`](windows/README.md) | PC Windows x64 e ARM, installazione con un doppio clic | C#, WPF, .NET 10, Whisper.net |
 | **Web app** | [`web/`](web/README.md) | Server, uso da browser, API REST, multitraccia | Python, FastAPI, Whisper, Docker |
 
 ![OpenPhonic per macOS](macos/docs/result.png)
@@ -23,7 +24,7 @@ voce in mono → passa-alto e ronzio → DeepFilterNet → Voice AutoEQ → Adap
 ```
 
 Su una registrazione reale da iPhone, rumorosa: rapporto segnale/rumore da 14 a 48 dB, loudness da
-−24,7 a −16,0 LUFS, picco a −1,2 dBTP. Le due versioni danno risultati identici entro 1 dB.
+−24,7 a −16,0 LUFS, picco a −1,2 dBTP. Le tre versioni danno risultati identici entro 1 dB.
 
 ## Avvio rapido
 
@@ -31,6 +32,12 @@ App per Mac (macOS 26, Apple Silicon, `brew install ffmpeg`):
 
 ```bash
 cd macos && ./tools/build-app.sh && open dist/OpenPhonic.app
+```
+
+App per Windows (da PowerShell, con il .NET 10 SDK), oppure lo zip già pronto con "Installa OpenPhonic":
+
+```powershell
+cd windows; powershell -ExecutionPolicy Bypass -File tools\build.ps1 -Rid win-x64 -Zip
 ```
 
 Web app:
